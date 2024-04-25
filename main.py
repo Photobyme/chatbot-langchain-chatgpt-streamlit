@@ -1,3 +1,8 @@
+# streamlit
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
@@ -11,10 +16,7 @@ from langchain.memory import ChatMessageHistory
 import streamlit as st
 import requests
 
-# streamlit
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+
 
 load_dotenv()
 
