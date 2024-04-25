@@ -11,6 +11,11 @@ from langchain.memory import ChatMessageHistory
 import streamlit as st
 import requests
 
+# streamlit
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+``
 load_dotenv()
 
 # Load the PDF file
