@@ -1,61 +1,34 @@
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import AIMessage
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_openai import OpenAIEmbeddings
+from langchain.chains.combine_documents import create_stuff_documents_chain
+from langchain.memory import ChatMessageHistory
+import streamlit as st
+import requests
 
 load_dotenv()
 
-chat = ChatOpenAI(model="gpt-3.5-turbo-1106"
-)
-# prompt = ChatPromptTemplate.from_messages(
-#     [
-#         (
-#             "system",
-#             "You are a helpful assistant. Answer all questions to the best of your ability.",
-#         ),
-#         MessagesPlaceholder(variable_name="messages"),
-#     ]
-# )
+# Load the PDF file
+pdf_url = "https://github.com/Photobyme/chatbot-langchain-chatgpt-streamlit/blob/main/photobyme-info.pdf?raw=true"
+response = requests.get(pdf_url)
+if response.status_code == 200:
+    with open("photobyme-info.pdf", "wb") as file:
+        file.write(response.content)
 
-# chain = prompt | chat
-
-# result = chain.invoke(
-#     {
-#         "messages": [
-#             HumanMessage(
-#                 content="Translate this sentence from English to French: I love programming."
-#             ),
-#             AIMessage(content="J'adore la programmation."),
-#             HumanMessage(content="What did you just say?"),
-#         ],
-#     }
-# )
-# print(result)
-
-# from langchain_community.document_loaders import WebBaseLoader
-from langchain_community.document_loaders import PyPDFLoader
-
+# Initialize the chatbot and document processing
+chat = ChatOpenAI(model="gpt-3.5-turbo-1106")
 loader = PyPDFLoader("photobyme-info.pdf")
 data = loader.load()
-
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-
 text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=0)
 all_splits = text_splitter.split_documents(data)
-
-from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
-
 vectorstore = Chroma.from_documents(documents=all_splits, embedding=OpenAIEmbeddings())
-
-# k is the number of chunks to retrieve
 retriever = vectorstore.as_retriever(k=100)
-
 docs = retriever.invoke("photo booth")
-
-from langchain.chains.combine_documents import create_stuff_documents_chain
-
 question_answering_prompt = ChatPromptTemplate.from_messages(
     [
         (
@@ -66,25 +39,10 @@ question_answering_prompt = ChatPromptTemplate.from_messages(
     ]
 )
 document_chain = create_stuff_documents_chain(chat, question_answering_prompt)
-
-
-from langchain.memory import ChatMessageHistory
-
 demo_ephemeral_chat_history = ChatMessageHistory()
 
-# demo_ephemeral_chat_history.add_user_message("How much is renting photo booth?")
-
-# result = document_chain.invoke(
-#     {
-#         "messages": demo_ephemeral_chat_history.messages,
-#         "context": docs,
-#     }
-# )
-
-import streamlit as st 
-
+# Streamlit app
 st.title('Photobyme AI Chatbot')
-
 userInput = st.text_input("Have any questions?")
 if st.button("Please, answer"):
     with st.spinner("Wait for it..."):
@@ -96,5 +54,3 @@ if st.button("Please, answer"):
             }
         )
         st.write(result)
-# else:
-#     st.button("hi")
