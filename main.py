@@ -3,7 +3,9 @@ __import__('pysqlite3')
 import sys
 sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
-from dotenv import load_dotenv
+# api key for local
+# from dotenv import load_dotenv
+# load_dotenv()
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
@@ -18,7 +20,7 @@ import requests
 
 
 
-load_dotenv()
+
 
 # Load the PDF file
 pdf_url = "https://github.com/Photobyme/chatbot-langchain-chatgpt-streamlit/blob/main/photobyme-info.pdf?raw=true"
